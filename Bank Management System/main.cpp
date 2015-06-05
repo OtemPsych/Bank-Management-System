@@ -4,12 +4,15 @@
 
 int main()
 {
+	using std::cout;
+	using std::cin;
+
 	Bank bank;
 	short option;
 
 	do {
-		std::cout << "====BANK MANAGEMENT SYSTEM====\n\n";
-		std::cout << "MAIN MENU\n\n"
+		cout << "====BANK MANAGEMENT SYSTEM====\n\n";
+		cout << "MAIN MENU\n\n"
 			<< "1| Open Account\n\n"
 			<< "2| Deposit\n\n"
 			<< "3| Withdraw\n\n"
@@ -18,9 +21,11 @@ int main()
 			<< "6| Modify Account\n\n"
 			<< "7| Close Account\n\n"
 			<< "8| Exit\n\n";
-		while (!(std::cout << "Select an option (1-8): ") || !(std::cin >> option) || option < 1 || option > 8)
-			while (std::cin.get() != '\n')
-				std::cin.clear();
+		while (!(cout << "Select an option (1-8): ") || !(cin >> option) || option < 1 || option > 8) {
+			cin.clear();
+			while (cin.get() != '\n')
+				continue;
+		}
 		system("cls");
 		try {
 			switch (option)
@@ -29,13 +34,14 @@ int main()
 				bank.openAccount();
 				break;
 			case 2:
-				bank.findAccount()->transaction(Account::TransactionType::DEPOSIT);
+				bank.findAccount()->transaction(Account::TransType::DEPOSIT);
 				break;
 			case 3:
-				bank.findAccount()->transaction(Account::TransactionType::WITHDRAW);
+				bank.findAccount()->transaction(Account::TransType::WITHDRAW);
 				break;
 			case 4:
 				bank.findAccount()->inquiry();
+				cin.get(); cin.get();
 				break;
 			case 5:
 				bank.accountInquiries();
@@ -47,9 +53,9 @@ int main()
 				bank.closeAccount(bank.findAccount());
 			}
 		}
-		catch (const Bank::AccountError& e) {
-			std::cout << e.what();
-			std::cin.get(); std::cin.get();
+		catch (const Bank::unfoundAccExc& e) {
+			cout << e.what();
+			cin.get(); cin.get();
 		}
 		system("cls");
 	} while (option != 8);

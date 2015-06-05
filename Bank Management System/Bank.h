@@ -6,14 +6,17 @@
 #include <vector>
 #include <memory>
 
-class Account;
 class Bank
 {
 private:
-	// Private Data Member
+	// Private Data Members
 	std::vector<std::unique_ptr<Account>> mAccounts;
 
+	std::string mFilename;
+
 public:
+	// Constructor
+	Bank();
 	// Public Methods
 	Account* findAccount() const;
 	std::unique_ptr<Account> inputAccountDetails() const;
@@ -22,10 +25,10 @@ public:
 	void modifyAccount(Account* pAcc);
 	void closeAccount(Account* pAcc);
 	// Nested Exception Class
-	class AccountError :public std::logic_error 
+	class unfoundAccExc :public std::logic_error
 	{
 	public:
-		explicit AccountError(const std::string& s = "\nAccount Not Found")
+		explicit unfoundAccExc(const std::string& s = "\nAccount Not Found")
 			: std::logic_error(s) {}
 	};
 };

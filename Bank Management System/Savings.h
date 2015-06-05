@@ -10,13 +10,16 @@ private:
 	double	 mInterestRate;
 	unsigned mWithdrawalAmounts;
 
+protected:
+	// Protected Methods
+	const std::streampos& read(const std::string& filename, std::streampos& pos);
+	void write(const std::string& filename);
 public:
-	// Constructor
-	Savings(unsigned number, const std::string& name = "Unknown",
-			unsigned balance = 0.0);
+	// Constructors
+	Savings() = default;
+	Savings(unsigned id, const std::string& name, double balance);
 	// Public Methods
-	void updateBalance();
-	void transaction(const TransactionType& type);
 	void inquiry() const;
+	void transaction(const TransType& type);
 };
 #endif

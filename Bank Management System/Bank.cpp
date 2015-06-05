@@ -3,11 +3,42 @@
 #include "Savings.h"
 
 #include <iostream>
+#include <fstream>
 #include <cctype>
 #include <algorithm>
+#include <iomanip>
+
+// Constructor
+Bank::Bank()
+	: mFilename("Bank Accounts.dat")
+{
+	std::ifstream fin(mFilename, std::ios::in | std::ios::binary);
+	std::streampos pos = 0;
+	while (fin.is_open())
+	{
+		fin.seekg(pos);
+		unsigned typeLen;
+		fin.read(reinterpret_cast<char*>(&typeLen), sizeof typeLen);
+		std::string typeString;
+		typeString.resize(typeLen);
+		fin.read(const_cast<char*>(typeString.c_str()), typeString.size());
+		if (typeString == "Checking") {
+			std::unique_ptr<Account> acc(new Checking());
+			pos = acc->read(mFilename, fin.tellg());
+			mAccounts.push_back(std::move(acc));
+		}
+		else if (typeString == "Savings") {
+			std::unique_ptr<Account> acc(new Savings());
+			pos = acc->read(mFilename, fin.tellg());
+			mAccounts.push_back(std::move(acc));
+		}
+		if (fin.eof())
+			fin.close();
+	}
+}
 
 // Public Methods
-	// Find Account
+// Find Account
 Account* Bank::findAccount() const
 {
 	using std::cout;
@@ -15,18 +46,19 @@ Account* Bank::findAccount() const
 
 	cout << "====FIND ACCOUNT====\n\n";
 	cout << "Number: ";
-	unsigned number;
-	while (!(cin >> number)) {
+	unsigned id;
+	while (!(cin >> id)) {
+		cin.clear();
 		while (cin.get() != '\n')
-			cin.clear();
+			continue;
 		cout << "Invalid Input\n";
 	}
 
 	for (auto& acc : mAccounts)
-		if (acc->mNumber == number)
+		if (acc->mID == id)
 			return &(*acc);
 
-	throw AccountError();
+	throw unfoundAccExc();
 }
 // Input Account Details
 std::unique_ptr<Account> Bank::inputAccountDetails() const
@@ -35,8 +67,8 @@ std::unique_ptr<Account> Bank::inputAccountDetails() const
 	using std::cin;
 	using std::endl;
 
-	unsigned number;
-	while (!(cout << "Number: ") || !(cin >> number) || number < 0)
+	unsigned id;
+	while (!(cout << "ID: ") || !(cin >> id) || id < 0)
 		while (cin.get() != '\n')
 			cin.clear();
 	cout << endl;
@@ -57,22 +89,22 @@ std::unique_ptr<Account> Bank::inputAccountDetails() const
 
 	char charType;
 	while (!(cout << "(C - Checking, S - Savings)\nType: ") || !(cin >> charType) || (toupper(charType) != 'C'
-																				 && toupper(charType) != 'S'))
+		&& toupper(charType) != 'S'))
 		while (cin.get() != '\n')
 			cin.clear();
-	Account::Type type = (toupper(charType) == 'C' ? Account::Type::CHECKING
-												   : Account::Type::SAVINGS);
+	Account::IDType type = (toupper(charType) == 'C' ? Account::IDType::CHECKING
+		: Account::IDType::SAVINGS);
 
-	if (type == Account::Type::CHECKING) {
-		std::unique_ptr<Checking> acc(new Checking(number, name, balance));
+	if (type == Account::IDType::CHECKING) {
+		std::unique_ptr<Checking> acc(new Checking(id, name, balance));
 		return std::move(acc);
 	}
 	else {
-		std::unique_ptr<Savings> acc(new Savings(number, name, balance));
+		std::unique_ptr<Savings> acc(new Savings(id, name, balance));
 		return std::move(acc);
 	}
 }
-	// Account Inquiries
+// Account Inquiries
 void Bank::accountInquiries() const
 {
 	using std::cout;
@@ -82,7 +114,7 @@ void Bank::accountInquiries() const
 
 	cout << "====ACCOUNT INQURIES====\n\n";
 
-	string No = "Number";
+	string No = "ID";
 	string Na = "Name";
 	string Ba = "Balance";
 	string Ty = "Type";
@@ -92,16 +124,16 @@ void Bank::accountInquiries() const
 	const unsigned short longestTy = string("Checking").size();
 	const unsigned short spaceBetween = 4;
 
-// Set Longest Strings
+	// Set Longest Strings
 	for (const auto& acc : mAccounts) {
-		if (to_string(acc->mNumber).size() > longestNo)
-			longestNo = to_string(acc->mNumber).size();
+		if (to_string(acc->mID).size() > longestNo)
+			longestNo = to_string(acc->mID).size();
 		if (acc->mName.size() > longestNa)
 			longestNa = acc->mName.size();
 		if (to_string(acc->mBalance).size() > longestBa)
 			longestBa = to_string(acc->mBalance).size();
 	}
-// Types and Separators
+	// Types and Separators
 	cout << string(longestNo + longestNa + longestBa + longestTy + spaceBetween * 3, '=');
 	cout << endl << No;
 	cout.width(longestNo - No.size() + Na.size() + spaceBetween);
@@ -112,30 +144,29 @@ void Bank::accountInquiries() const
 	cout << Ty << endl;
 	cout << string(longestNo + longestNa + longestBa + longestTy + spaceBetween * 3, '=');
 	cout << endl;
-// Display
+	// Display
+	cout.setf(std::ios::left, std::ios::adjustfield);
 	for (const auto& acc : mAccounts) {
-		cout << acc->mNumber;
-		cout.width(longestNo - to_string(acc->mNumber).size() + acc->mName.size() + spaceBetween);
-		cout << acc->mName;
-		cout.width(longestNa - acc->mName.size() + to_string(acc->mBalance).size() + spaceBetween);
-		cout << acc->mBalance;
-		cout.width(longestBa - to_string(acc->mBalance).size() + (acc->mType == Account::CHECKING 
-																	   ? string("Checking").size() 
-																	   : string("Savings").size()) + spaceBetween);
-		cout << (acc->mType == Account::CHECKING ? "Checking" : "Savings") << endl;
+		cout << std::setw(longestNo + spaceBetween) << acc->mID;
+		cout << std::setw(longestNa + spaceBetween) << acc->mName;
+		cout << std::setw(longestBa + spaceBetween) << acc->mBalance;
+		cout << (acc->mType.first == Account::CHECKING ? "Checking" : "Savings") << endl;
 	}
 	std::cin.get(); std::cin.get();
 }
-	// Open Account
+// Open Account
 void Bank::openAccount()
 {
 	std::cout << "====OPEN ACCOUNT====\n\n";
-	mAccounts.push_back(inputAccountDetails());
-	
+
+	auto acc = inputAccountDetails();
+	acc->write(mFilename);
+	mAccounts.push_back(std::move(acc));
+
 	std::cout << "\nAccount successfully opened..\n";
 	std::cin.get(); std::cin.get();
 }
-	// Modify Account
+// Modify Account
 void Bank::modifyAccount(Account* pAcc)
 {
 	system("cls");
@@ -147,7 +178,7 @@ void Bank::modifyAccount(Account* pAcc)
 	std::cout << "\nAccount successfully modified..\n";
 	std::cin.get(); std::cin.get();
 }
-	// Close Account
+// Close Account
 void Bank::closeAccount(Account* pAcc)
 {
 	using std::cout;
@@ -160,9 +191,9 @@ void Bank::closeAccount(Account* pAcc)
 	while (!(cout << "Reenter Account Number to confirm: ") || !(cin >> number))
 		while (cin.get() != '\n')
 			cin.clear();
-	if (number == pAcc->mNumber) {
+	if (number == pAcc->mID) {
 		for (auto& ps = mAccounts.begin(); ps != mAccounts.end(); ps++)
-			if (&(*ps)->mNumber == &pAcc->mNumber) {
+			if (&(*ps)->mID == &pAcc->mID) {
 				int pos = find(mAccounts.begin(), mAccounts.end(), *ps) - mAccounts.begin();
 				mAccounts.erase(mAccounts.begin() + pos);
 				break;
