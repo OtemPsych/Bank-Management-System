@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 
 // Constructor 1
 Account::Account(unsigned id, const IDType& type, const std::string& name, double balance)
@@ -71,18 +72,34 @@ Account* Account::operator=(std::unique_ptr<Account> acc)
 
 // Public Methods
 	// Inquiry
-void Account::inquiry() const
+void Account::inquiry()
 {
 	using std::cout;
 	using std::endl;
 
-	cout.setf(std::ios::right, std::ios::adjustfield);
+	auto mode = [](std::ios::fmtflags s) { cout.setf(s, std::ios::adjustfield); };
 
-	cout << "----ACCOUNT INQUIRY----\n\n";
-	cout << std::setw(mFWidth) << "ID" << std::setw(4) << mID << endl
-		<< std::setw(mFWidth) << "Type" << std::setw(4) << mType.second << endl
-		<< std::setw(mFWidth) << "Name" << std::setw(4) << mName << endl
-		<< std::setw(mFWidth) << "Balance" << std::setw(4) << mBalance << endl;
+	cout << "\n----ACCOUNT INQUIRY----\n\n";
+
+	mode(std::ios::right);
+	cout << std::setw(mFWidth) << "ID" << std::setw(3) << ' ';
+	mode(std::ios::left);
+	cout << mID << endl;
+
+	mode(std::ios::right);
+	cout << std::setw(mFWidth) << "Type" << std::setw(3) << ' ';
+	mode(std::ios::left);
+	cout << mType.second << endl;
+
+	mode(std::ios::right);
+	cout << std::setw(mFWidth) << "Name" << std::setw(3) << ' ';
+	mode(std::ios::left);
+	cout << mName << endl;
+
+	mode(std::ios::right);
+	cout << std::setw(mFWidth) << "Balance" << std::setw(3) << ' ';
+	mode(std::ios::left);
+	cout << mBalance << endl;
 }
 	// Transaction
 void Account::transaction(const TransType& type)
@@ -90,15 +107,20 @@ void Account::transaction(const TransType& type)
 	using std::cout;
 	using std::cin;
 
-	cout << "\n\n====TRANSACTION FORM====\n\n";
+	cout << "\n\n====TRANSACTION FORM====\n";
 	inquiry();
-	cout << (type == DEPOSIT ? "Deposit" : "Withdraw") << " Amount: ";
+	cout << std::endl;
 	double amount;
-	while (!(cin >> amount) || amount < 0 || (type == WITHDRAW ? amount > mBalance : nullptr)) {
-		cin.clear();
-		while (cin.get() != '\n')
-			continue;
-		cout << "Invalid Input\n";
-	}
+	do {
+		cout << (type == DEPOSIT ? "Deposit" : "Withdraw") << " Amount: ";
+		if (!(cin >> amount)) {
+			cin.clear();
+			while (cin.get() != '\n')
+				continue;
+		}
+	} while (amount < 0 || (type == WITHDRAW ? amount > mBalance : nullptr));
 	type == DEPOSIT ? mBalance += amount : mBalance -= amount;
+	cout << "\nTransaction Complete..\n";
+	cin.get();
+	cin.get();
 }

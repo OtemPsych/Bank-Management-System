@@ -17,7 +17,7 @@ public:
 	Checking(unsigned id, const std::string& name, double balance)
 		: Account(id, IDType::CHECKING, name, balance) {}
 	// Public Methods
-	inline void inquiry() const { Account::inquiry(); }
+	inline void inquiry() { Account::inquiry(); }
 	inline void transaction(const TransType& type) { Account::transaction(type); }
 };
 #endif

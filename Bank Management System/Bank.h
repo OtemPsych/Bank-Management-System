@@ -11,8 +11,11 @@ class Bank
 private:
 	// Private Data Members
 	std::vector<std::unique_ptr<Account>> mAccounts;
+	std::string						      mAccFilename;
 
-	std::string mFilename;
+	std::pair<unsigned short, unsigned short> mTimePassed;
+	bool mNewYear = false;
+	std::string								  mTimeFilename;
 
 public:
 	// Constructor
@@ -24,6 +27,10 @@ public:
 	void openAccount();
 	void modifyAccount(Account* pAcc);
 	void closeAccount(Account* pAcc);
+	void updateSavingsAccounts();
+	void recreateFile();
+	// Getter
+	const std::pair<unsigned short, unsigned short> getTimePassed() const { return mTimePassed; }
 	// Nested Exception Class
 	class unfoundAccExc :public std::logic_error
 	{

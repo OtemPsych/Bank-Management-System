@@ -1,17 +1,20 @@
 #include "Bank.h"
 
 #include <iostream>
+#include <algorithm>
 
 int main()
 {
 	using std::cout;
 	using std::cin;
+	using std::stoi;
 
 	Bank bank;
-	short option;
+	std::string option = "\n";
 
 	do {
-		cout << "====BANK MANAGEMENT SYSTEM====\n\n";
+		cout << "====BANK MANAGEMENT SYSTEM====\t\tTime Passed: " 
+			<< bank.getTimePassed().second << " years, " << bank.getTimePassed().first << " months\n\n";
 		cout << "MAIN MENU\n\n"
 			<< "1| Open Account\n\n"
 			<< "2| Deposit\n\n"
@@ -21,14 +24,22 @@ int main()
 			<< "6| Modify Account\n\n"
 			<< "7| Close Account\n\n"
 			<< "8| Exit\n\n";
-		while (!(cout << "Select an option (1-8): ") || !(cin >> option) || option < 1 || option > 8) {
-			cin.clear();
-			while (cin.get() != '\n')
+		do {
+			cout << "Select an option (1-8): ";
+			if (cin.peek() != '\n')
+				getline(cin, option);
+			else {
+				cin.clear();
+				while (cin.get() != '\n')
+					continue;
 				continue;
-		}
+			}
+		} while (!std::all_of(option.begin(), option.end(), ::isdigit)
+			|| stoi(option) < 1 || stoi(option) > 8);
+
 		system("cls");
 		try {
-			switch (option)
+			switch (stoi(option))
 			{
 			case 1:
 				bank.openAccount();
@@ -41,7 +52,6 @@ int main()
 				break;
 			case 4:
 				bank.findAccount()->inquiry();
-				cin.get(); cin.get();
 				break;
 			case 5:
 				bank.accountInquiries();
@@ -51,14 +61,21 @@ int main()
 				break;
 			case 7:
 				bank.closeAccount(bank.findAccount());
+				break;
+			}
+			if (stoi(option) != 8 && stoi(option) != 2) {
+				cin.clear();
+				while (cin.get() != '\n')
+					continue;
 			}
 		}
-		catch (const Bank::unfoundAccExc& e) {
+		catch (Bank::unfoundAccExc& e) {
 			cout << e.what();
-			cin.get(); cin.get();
+			cin.get();
 		}
 		system("cls");
-	} while (option != 8);
+	} while (stoi(option) != 8);
 
+	bank.recreateFile();
 	return 0;
 }

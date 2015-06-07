@@ -53,19 +53,38 @@ void Savings::write(const std::string& filename)
 		fout.close();
 	}
 }
+	// Operator =
+Account* Savings::operator=(std::unique_ptr<Account> acc)
+{
+	mInterestRate = dynamic_cast<Savings*>(&(*acc))->mInterestRate;
+	mWithdrawalAmounts = dynamic_cast<Savings*>(&(*acc))->mWithdrawalAmounts;
+
+	Account::operator=(std::move(acc));
+
+	return this;
+}
 
 // Public Methods
 	// Inquiry
-void Savings::inquiry() const
+void Savings::inquiry()
 {
 	using std::cout;
 	using std::endl;
 
-	cout.setf(std::ios::left, std::ios::adjustfield);
+	setFWidth(13);
+	auto mode = [](std::ios::fmtflags s) { cout.setf(s, std::ios::adjustfield); };
 
 	Account::inquiry();
-	cout << std::setw(getFWidth()) << "Interest Rate" << mInterestRate << endl
-		<< std::setw(getFWidth()) << "Withdrawals" << mWithdrawalAmounts << endl;
+
+	mode(std::ios::right);
+	cout << std::setw(getFWidth()) << "Interest Rate" << std::setw(3) << ' ';
+	mode(std::ios::left);
+	cout << mInterestRate << '%' << endl;
+
+	mode(std::ios::right);
+	cout << std::setw(getFWidth()) << "Withdrawals" << std::setw(3) << ' ';
+	mode(std::ios::left);
+	cout << mWithdrawalAmounts << endl;
 }
 	// Transaction
 void Savings::transaction(const TransType& type)
@@ -77,7 +96,6 @@ void Savings::transaction(const TransType& type)
 		}
 		else
 			std::cout << "\nReached maximum withdrawals for this month.\n\n";
-		std::cin.get(); std::cin.get();
 	}
 	else
 		Account::transaction(type);

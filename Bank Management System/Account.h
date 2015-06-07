@@ -19,15 +19,16 @@ private:
 	std::string		 mName;
 	double			 mBalance;
 
-	unsigned short   mFWidth = 12;
+	unsigned short   mFWidth = 7;
 
 protected:
 	// Protected Methods
 	virtual const std::streampos& read(const std::string& filename, std::streampos& pos) = 0;
 	virtual void write(const std::string& filename) = 0;
-	Account* operator=(std::unique_ptr<Account> acc);
+	virtual Account* operator=(std::unique_ptr<Account> acc);
 	// Protected Setters-Getter
 	inline void setType(const std::pair<IDType, std::string>& type) { mType = type; }
+	inline void setFWidth(unsigned short v) { mFWidth = v; }
 	inline unsigned short getFWidth() const { return mFWidth; }
 public:
 	// Constructors - Destructor
@@ -37,7 +38,7 @@ public:
 	// Public Enumerator
 	enum TransType {DEPOSIT, WITHDRAW};
 	// Public Methods
-	virtual void inquiry() const = 0;
+	virtual void inquiry() = 0;
 	virtual void transaction(const TransType& type) = 0;
 };
 #endif
