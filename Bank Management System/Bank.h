@@ -29,8 +29,6 @@ public:
 	void closeAccount(Account* pAcc);
 	void updateSavingsAccounts();
 	void recreateFile();
-	// Getter
-	const std::pair<unsigned short, unsigned short> getTimePassed() const { return mTimePassed; }
 	// Nested Exception Class
 	class unfoundAccExc :public std::logic_error
 	{

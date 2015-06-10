@@ -13,8 +13,7 @@ int main()
 	std::string option = "\n";
 
 	do {
-		cout << "====BANK MANAGEMENT SYSTEM====\t\tTime Passed: " 
-			<< bank.getTimePassed().second << " years, " << bank.getTimePassed().first << " months\n\n";
+		cout << "====BANK MANAGEMENT SYSTEM====\n\n";
 		cout << "MAIN MENU\n\n"
 			<< "1| Open Account\n\n"
 			<< "2| Deposit\n\n"
@@ -63,7 +62,7 @@ int main()
 				bank.closeAccount(bank.findAccount());
 				break;
 			}
-			if (stoi(option) != 8 && stoi(option) != 2) {
+			if (stoi(option) != 8) {
 				cin.clear();
 				while (cin.get() != '\n')
 					continue;

@@ -56,8 +56,11 @@ void Savings::write(const std::string& filename)
 	// Operator =
 Account* Savings::operator=(std::unique_ptr<Account> acc)
 {
-	mInterestRate = dynamic_cast<Savings*>(&(*acc))->mInterestRate;
-	mWithdrawalAmounts = dynamic_cast<Savings*>(&(*acc))->mWithdrawalAmounts;
+	Savings* ps;
+	if (ps = dynamic_cast<Savings*>(&(*acc))) {
+		mInterestRate = dynamic_cast<Savings*>(&(*acc))->mInterestRate;
+		mWithdrawalAmounts = dynamic_cast<Savings*>(&(*acc))->mWithdrawalAmounts;
+	}
 
 	Account::operator=(std::move(acc));
 

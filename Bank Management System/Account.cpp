@@ -120,7 +120,6 @@ void Account::transaction(const TransType& type)
 		}
 	} while (amount < 0 || (type == WITHDRAW ? amount > mBalance : nullptr));
 	type == DEPOSIT ? mBalance += amount : mBalance -= amount;
-	cout << "\nTransaction Complete..\n";
-	cin.get();
+	cout << "\n\nTransaction Complete..\n";
 	cin.get();
 }

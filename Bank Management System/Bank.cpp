@@ -39,7 +39,7 @@ Bank::Bank()
 				fin.close();
 		}
 	}
-	catch (std::bad_alloc& e) {
+	catch (std::bad_alloc e) {
 		std::ofstream fout(mAccFilename, std::ios::out | std::ios::app | std::ios::binary);
 		if (fout.is_open())
 			fout.close();
@@ -103,24 +103,43 @@ std::unique_ptr<Account> Bank::inputAccountDetails() const
 	using std::cin;
 	using std::endl;
 
-	unsigned id;
-	while (!(cout << "ID: ") || !(cin >> id) || id < 0)
-		while (cin.get() != '\n')
+	std::string id = "\n";
+	do {
+		cout << "ID: ";
+		if (cin.peek() != '\n')
+			getline(cin, id);
+		else {
 			cin.clear();
+			while (cin.get() != '\n')
+				continue;
+			continue;
+		}
+	} while (!std::all_of(id.begin(), id.end(), ::isdigit));
 	cout << endl;
 
-	std::string name;
-	cin.get();
+	std::string name = "\n";
 	do {
 		cout << "Name: ";
-		getline(cin, name);
+		if (cin.peek() != '\n')
+			getline(cin, name);
+		else {
+			cin.clear();
+			while (cin.get() != '\n')
+				continue;
+			continue;
+		}
 	} while (std::any_of(name.begin(), name.end(), ::isdigit) || std::any_of(name.begin(), name.end(), ::ispunct));
 	cout << endl;
 
-	unsigned balance;
-	while (!(cout << "Balance: ") || !(cin >> balance) || balance < 0)
-		while (cin.get() != '\n')
+	double balance;
+	do {
+		cout << "Balance: ";
+		if (!(cin >> balance)) {
 			cin.clear();
+			while (cin.get() != '\n')
+				continue;
+		}
+	} while (balance < 0);
 	cout << endl;
 
 	char charType;
@@ -132,11 +151,11 @@ std::unique_ptr<Account> Bank::inputAccountDetails() const
 		: Account::IDType::SAVINGS);
 
 	if (type == Account::IDType::CHECKING) {
-		std::unique_ptr<Checking> acc(new Checking(id, name, balance));
+		std::unique_ptr<Checking> acc(new Checking(stoi(id), name, balance));
 		return std::move(acc);
 	}
 	else {
-		std::unique_ptr<Savings> acc(new Savings(id, name, balance));
+		std::unique_ptr<Savings> acc(new Savings(stoi(id), name, balance));
 		return std::move(acc);
 	}
 }
@@ -176,7 +195,7 @@ void Bank::accountInquiries() const
 		if (acc->mName.size() > longestNa)
 			longestNa = acc->mName.size();
 		if (to_string(acc->mBalance).size() - 4 > longestBa)
-			longestBa = to_string(acc->mBalance).size();
+			longestBa = to_string(acc->mBalance).size() - 4;
 		if (acc->mType.second.size() > longestTy)
 			longestTy = acc->mType.second.size();
 
@@ -184,10 +203,10 @@ void Bank::accountInquiries() const
 		if (ps = dynamic_cast<Savings*>(&(*acc)))
 			castable = true;
 
-		if (castable && to_string(dynamic_cast<Savings*>(&(*acc))->mInterestRate).size() > longestIR)
-			longestIR = to_string(dynamic_cast<Savings*>(&(*acc))->mInterestRate).size();
-		if (castable && to_string(dynamic_cast<Savings*>(&(*acc))->mWithdrawalAmounts).size() > longestWi)
-			longestWi = to_string(dynamic_cast<Savings*>(&(*acc))->mWithdrawalAmounts).size();
+		if (castable && to_string(ps->mInterestRate).size() > longestIR)
+			longestIR = to_string(ps->mInterestRate).size();
+		if (castable && to_string(ps->mWithdrawalAmounts).size() > longestWi)
+			longestWi = to_string(ps->mWithdrawalAmounts).size();
 	}
 	// Types and Separators
 	cout << string(longestNo + longestNa + longestBa + longestTy 
@@ -205,16 +224,16 @@ void Bank::accountInquiries() const
 		cout << setw(longestNo + spaceBetween) << acc->mID
 			<< setw(longestNa + spaceBetween) << acc->mName
 			<< setw(longestTy + spaceBetween) << acc->mType.second
-			<< setw(longestBa + spaceBetween - 4) << acc->mBalance;
+			<< setw(longestBa + spaceBetween) << acc->mBalance;
 
 		castable = false;
 		if (ps = dynamic_cast<Savings*>(&(*acc)))
 			castable = true;
 
 		if (castable) {
-			cout << std::setprecision(1) << dynamic_cast<Savings*>(&(*acc))->mInterestRate
-				<< setw(longestIR+1 + spaceBetween - (to_string(dynamic_cast<Savings*>(&(*acc))->mInterestRate).size() - 4)) << "%"
-				<< setw(longestWi + spaceBetween) << dynamic_cast<Savings*>(&(*acc))->mWithdrawalAmounts;
+			cout << std::setprecision(1) << ps->mInterestRate
+				<< setw(longestIR+1 + spaceBetween - (to_string(ps->mInterestRate).size() - 4)) << "%"
+				<< setw(longestWi + spaceBetween) << ps->mWithdrawalAmounts;
 		}
 		cout << endl;
 		cout << std::fixed << std::setprecision(2);
@@ -230,8 +249,8 @@ void Bank::openAccount()
 	acc->write(mAccFilename);
 	mAccounts.push_back(std::move(acc));
 
-	std::cout << "\nAccount successfully opened..\n";
-	std::cin.get(); std::cin.get();
+	std::cout << "\n\nAccount successfully opened..\n";
+	std::cin.get();
 }
 	// Modify Account
 void Bank::modifyAccount(Account* pAcc)
@@ -243,7 +262,7 @@ void Bank::modifyAccount(Account* pAcc)
 	*pAcc = inputAccountDetails();
 
 	std::cout << "\nAccount successfully modified..\n";
-	std::cin.get(); std::cin.get();
+	std::cin.get();
 }
 	// Close Account
 void Bank::closeAccount(Account* pAcc)
@@ -267,6 +286,7 @@ void Bank::closeAccount(Account* pAcc)
 			}
 		cout << "\nAccount successfully closed..\n";
 	}
+	cin.get();
 }
 	// Update Savings Accounts
 void Bank::updateSavingsAccounts()
