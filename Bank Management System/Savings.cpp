@@ -20,9 +20,7 @@ const std::streampos& Savings::read(const std::string& filename, std::streampos&
 	std::ifstream fin(filename, std::ios::in | std::ios::binary);
 	if (fin.is_open())
 	{
-		std::pair<IDType, std::string> type;
-		type.first = SAVINGS;
-		type.second = "Savings";
+		std::pair<IDType, std::string> type{ SAVINGS, "Savings" };
 		setType(type);
 		pos = Account::read(filename, pos);
 
@@ -58,8 +56,8 @@ Account* Savings::operator=(std::unique_ptr<Account> acc)
 {
 	Savings* ps;
 	if (ps = dynamic_cast<Savings*>(&(*acc))) {
-		mInterestRate = dynamic_cast<Savings*>(&(*acc))->mInterestRate;
-		mWithdrawalAmounts = dynamic_cast<Savings*>(&(*acc))->mWithdrawalAmounts;
+		mInterestRate = ps->mInterestRate;
+		mWithdrawalAmounts = ps->mWithdrawalAmounts;
 	}
 
 	Account::operator=(std::move(acc));
@@ -73,20 +71,21 @@ void Savings::inquiry()
 {
 	using std::cout;
 	using std::endl;
+	using std::ios;
 
 	setFWidth(13);
-	auto mode = [](std::ios::fmtflags s) { cout.setf(s, std::ios::adjustfield); };
+	auto mode = [](ios::fmtflags s) { cout.setf(s, ios::adjustfield); };
 
 	Account::inquiry();
 
-	mode(std::ios::right);
+	mode(ios::right);
 	cout << std::setw(getFWidth()) << "Interest Rate" << std::setw(3) << ' ';
-	mode(std::ios::left);
+	mode(ios::left);
 	cout << mInterestRate << '%' << endl;
 
-	mode(std::ios::right);
+	mode(ios::right);
 	cout << std::setw(getFWidth()) << "Withdrawals" << std::setw(3) << ' ';
-	mode(std::ios::left);
+	mode(ios::left);
 	cout << mWithdrawalAmounts << endl;
 }
 	// Transaction
